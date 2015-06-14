@@ -1,2 +1,2 @@
 # bin
-not really binaries, rather scripts I need sometimes
+Not really binaries, rather scripts I need sometimes
