@@ -1,0 +1,11 @@
+#!/bin/sh
+
+#
+# Typical use is lack of GNU mv and need to do something like:
+#	find /somewhere -type f -print0|xargs -0 mvv DestDir
+#
+
+mvTo="$1"
+shift
+mv "$@" "$mvTo"
+
