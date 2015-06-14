@@ -1,0 +1,56 @@
+#!/bin/sh
+
+#
+# trypatch is supposed to be drop-in replacement for patch
+# The main purpose is to try applying the patch to see if it's
+# applicable or fail w/o leaving you with reject files spread across
+# the sources. You can run it against compressed patches
+# most popular extensions are supported so you don't need to unpack
+# the patch before you go.
+#
+
+TMP_FQN="/tmp/patch-$$.tmp"
+
+my_OPTS=''
+
+#: Del all -o -p -t -ions from command line
+while :; do
+	case $1 in
+		-*)
+			my_OPTS="$my_OPTS $1"
+			shift
+			;;
+		--*)
+			my_OPTS="$my_OPTS $1"
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+CAT=cat
+CATFILE="$1"
+case "$1" in
+	*.bz2)		CAT=bzcat	;;
+	*.gz)		CAT=zcat	;;
+	*.xz)		CAT=xzcat	;;
+	*.patch)	CAT=cat		;;
+	*)		CATFILE='-'	;;
+esac
+
+"$CAT" "$CATFILE" | tee "$TMP_FQN" | patch -s --dry-run $my_OPTS 1>&- 2>&- || {
+	echo 'Patch is not applicable... exiting' > /dev/stderr
+	rm "$TMP_FQN"
+	exit 1
+}
+
+patch -s $my_OPTS -i "$TMP_FQN" && echo Ok
+
+rm "$TMP_FQN"
+
